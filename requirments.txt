@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-pandas
-scikit-learn
-joblib
+requests
 pydantic
+chromadb
+sentence-transformers
