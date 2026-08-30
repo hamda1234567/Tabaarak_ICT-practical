@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Risk Prediction</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #1a7b22;
+      --primary-dark: #1ae450;
+      --primary-light: #eaf5fb;
+      --dark: #17212b;
+      --text: #5c6975;
+      --muted: #041f35;
+      --border: #dce5eb;
+      --bg: #f6f8fa;
+      --white: #b02121;
+      --success: #0b5231;
+      --danger: #052311;
+    }
+
+    body {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      min-height: 100vh;
+    }
+
+    header {
+      height: 72px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 750;
+      font-size: 18px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--primary);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .hero {
+      max-width: 760px;
+      margin: 55px auto 34px;
+      padding: 0 20px;
+      text-align: center;
+      animation: fadeUp 0.6s ease;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .hero h1 {
+      font-size: clamp(34px, 5vw, 50px);
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+      margin-bottom: 15px;
+    }
+
+    .hero h1 span { color: var(--primary); }
+
+    .hero p {
+      max-width: 620px;
+      margin: auto;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .container {
+      width: min(1180px, 92%);
+      margin: auto;
+      padding-bottom: 60px;
+    }
+
+    .app-card {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 18px 45px rgba(30, 60, 80, 0.08);
+      animation: fadeUp 0.8s ease;
+    }
+
+    .form-panel, .result-panel { padding: 32px; }
+
+    .form-panel { border-right: 1px solid var(--border); }
+
+    .result-panel { background: #fbfcfd; }
+
+    .section-head { margin-bottom: 22px; }
+
+    .section-head small {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .section-head h2 {
+      font-size: 22px;
+      margin-bottom: 7px;
+    }
+
+    .section-head p {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, select {
+      width: 100%;
+      height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      color: var(--dark);
+      font: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 111, 168, 0.08);
+    }
+
+    .predict-btn {
+      width: 100%;
+      height: 48px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 11px;
+      background: var(--primary);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: 0.25s ease;
+    }
+
+    .predict-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .empty-state {
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .student-card-visual {
+      width: 118px;
+      height: 145px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 22px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--white);
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      margin: 18px auto 15px;
+      border-radius: 50%;
+      background: var(--primary-light);
+    }
+
+    .line {
+      height: 5px;
+      margin: 11px 18px;
+      border-radius: 4px;
+      background: #dce5eb;
+    }
+
+    .line:nth-of-type(2) { width: 55%; }
+    .line:nth-of-type(3) { width: 66%; }
+
+    .scan-line {
+      position: absolute;
+      left: 9px;
+      right: 9px;
+      height: 2px;
+      background: var(--primary);
+      box-shadow: 0 0 10px rgba(15, 111, 168, 0.6);
+      animation: scan 2.4s infinite ease-in-out;
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      max-width: 330px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .result-view {
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .result-card {
+      padding: 22px;
+      border-radius: 15px;
+      color: var(--white);
+      margin-bottom: 16px;
+      background: var(--danger);
+    }
+
+    .result-card.safe { background: var(--success); }
+
+    .result-card small {
+      display: block;
+      opacity: 0.84;
+      margin-bottom: 5px;
+    }
+
+    .result-card h3 {
+      font-size: 26px;
+      margin-bottom: 4px;
+    }
+
+    .result-card strong {
+      font-size: 34px;
+      font-weight: 800;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .mini-card {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--white);
+    }
+
+    .mini-card small {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .mini-card strong { font-size: 16px; }
+
+    .note {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .note strong { color: var(--primary-dark); }
+
+    footer {
+      padding: 25px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scan {
+      0% { top: 12px; }
+      50% { top: 130px; }
+      100% { top: 12px; }
+    }
+
+    @media (max-width: 900px) {
+      .app-card { grid-template-columns: 1fr; }
+      .form-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .empty-state { min-height: 360px; }
+    }
+
+    @media (max-width: 620px) {
+      header { padding: 0 4%; }
+      .form-grid, .result-grid { grid-template-columns: 1fr; }
+      .form-panel, .result-panel { padding: 24px; }
+      .hero { margin-top: 40px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">AI</div>
+      <span>Student Risk Prediction</span>
+    </div>
+
+    <div class="status">
+      <span class="status-dot"></span>
+      Model Ready
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">Student Performance Prediction</div>
+
+    <h1>
+      Identify students who may need
+      <span>early academic support.</span>
+    </h1>
+
+    <p>
+      Enter the student information below. The trained machine learning model
+      will estimate whether the student may be at academic risk.
+    </p>
+  </section>
+
+  <main class="container">
+
+    <section class="app-card">
+
+      <div class="form-panel">
+        <div class="section-head">
+          <small>Student Input</small>
+          <h2>Student information</h2>
+          <p>Use the same 10 features used during model training.</p>
+        </div>
+
+        <form id="predictionForm">
+
+          <div class="form-grid">
+
+            <div class="field">
+              <label for="studytime">Study Time</label>
+              <select id="studytime">
+                <option value="1">1 — Less than 2 hours</option>
+                <option value="2" selected>2 — 2 to 5 hours</option>
+                <option value="3">3 — 5 to 10 hours</option>
+                <option value="4">4 — More than 10 hours</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="failures">Previous Failures</label>
+              <select id="failures">
+                <option value="0">0</option>
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3 or more</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="schoolsup">School Support</label>
+              <select id="schoolsup">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="famsup">Family Support</label>
+              <select id="famsup">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="activities">Extracurricular Activities</label>
+              <select id="activities">
+                <option value="yes">Yes</option>
+                <option value="no" selected>No</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="higher">Plans Higher Education</label>
+              <select id="higher">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="internet">Internet Access</label>
+              <select id="internet">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="famrel">Family Relationship</label>
+              <select id="famrel">
+                <option value="1">1 — Very poor</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5 — Excellent</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="health">Health Status</label>
+              <select id="health">
+                <option value="1">1 — Very poor</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5 — Very good</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="absences">Absences</label>
+              <input type="number" id="absences" min="0" value="8" />
+            </div>
+
+          </div>
+
+          <button type="submit" class="predict-btn">
+            Predict Student Risk
+          </button>
+
+        </form>
+      </div>
+
+      <div class="result-panel">
+
+        <div class="empty-state" id="emptyState">
+
+          <div class="student-card-visual">
+            <div class="avatar"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="scan-line"></div>
+          </div>
+
+          <h3>Prediction will appear here</h3>
+
+          <p>
+            Complete the student information and run the prediction
+            to view the model result and risk probability.
+          </p>
+        </div>
+
+        <div class="result-view" id="resultView">
+
+          <div class="section-head">
+            <small>Prediction Result</small>
+            <h2>Student risk assessment</h2>
+            <p>This area is ready to receive the FastAPI response later.</p>
+          </div>
+
+          <div class="result-card" id="resultCard">
+            <small>Prediction</small>
+            <h3 id="predictionText">At Risk</h3>
+            <strong id="probabilityText">70.39%</strong>
+          </div>
+
+          <div class="result-grid">
+
+            <div class="mini-card">
+              <small>Risk Level</small>
+              <strong id="riskLevel">High</strong>
+            </div>
+
+            <div class="mini-card">
+              <small>Model</small>
+              <strong>Logistic Regression</strong>
+            </div>
+
+          </div>
+
+          <div class="note">
+            <strong>Decision support only.</strong>
+            This prediction should be used as an early-support indicator,
+            not as the sole basis for academic decisions.
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer>
+    Student Performance Prediction System · Machine Learning Project
+  </footer>
+
+  <script>
+    // Collect form, UI targets
+    const form = document.getElementById("predictionForm");
+    const emptyState = document.getElementById("emptyState");
+    const resultView = document.getElementById("resultView");
+    const predictionText = document.getElementById("predictionText");
+    const probabilityText = document.getElementById("probabilityText");
+    const riskLevel = document.getElementById("riskLevel");
+    const resultCard = document.getElementById("resultCard");
+
+    // API base (adjust if your server runs on a different host/port)
+    const API_BASE = "http://127.0.0.1:3200";
+
+    function showResultArea() {
+      emptyState.style.display = "none";
+      resultView.style.display = "block";
+    }
+
+    function showEmptyState() {
+      emptyState.style.display = "flex";
+      resultView.style.display = "none";
+    }
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      // Build payload from the form values
+      const payload = {
+        studytime: parseInt(document.getElementById("studytime").value, 10),
+        failures: parseInt(document.getElementById("failures").value, 10),
+        schoolsup: document.getElementById("schoolsup").value,
+        famsup: document.getElementById("famsup").value,
+        activities: document.getElementById("activities").value,
+        higher: document.getElementById("higher").value,
+        internet: document.getElementById("internet").value,
+        famrel: parseInt(document.getElementById("famrel").value, 10),
+        health: parseInt(document.getElementById("health").value, 10),
+        absences: parseInt(document.getElementById("absences").value, 10)
+      };
+
+      // Show loading state
+      predictionText.textContent = "Predicting...";
+      probabilityText.textContent = "—";
+      showResultArea();
+
+      try {
+        const res = await fetch(`${API_BASE}/predict`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          predictionText.textContent = `Error: ${res.status}`;
+          probabilityText.textContent = text || "";
+          resultCard.classList.remove("safe");
+          resultCard.classList.add("danger");
+          return;
+        }
+
+        const data = await res.json();
+
+        // Update UI from API response shape
+        // Expected shape: { result, probability: { at_risk, not_at_risk }, model_percentage }
+        predictionText.textContent = data.result || "Unknown";
+        probabilityText.textContent = (data.model_percentage ?? 0) + "%";
+
+        const isAtRisk = (data.result || "").toLowerCase().includes("risk");
+        riskLevel.textContent = isAtRisk ? "High" : "Low";
+        if (isAtRisk) {
+          resultCard.classList.remove("safe");
+          resultCard.classList.add("danger");
+        } else {
+          resultCard.classList.remove("danger");
+          resultCard.classList.add("safe");
+        }
+
+      } catch (err) {
+        predictionText.textContent = "Network error";
+        probabilityText.textContent = err.message || String(err);
+        resultCard.classList.remove("safe");
+        resultCard.classList.add("danger");
+      }
+    });
+  </script>
+
+</body>
+</html>
